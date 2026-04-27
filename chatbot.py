@@ -1,4 +1,5 @@
-from langchain_community.chat_models import ChatOllama
+def get_response(user_input):
+    return "AI chatbot is currently under maintenance or not enabled in cloud deployment."
 from langchain_core.messages import HumanMessage, SystemMessage
 
 llm = ChatOllama(model="llama3", temperature=0.4)
