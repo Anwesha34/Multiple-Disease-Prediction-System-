@@ -14,7 +14,7 @@ def get_chatbot_response(user_question):
 You are an AI Health Assistant.
 Give only general health advice.
 Do not prescribe medicine.
-Advise doctor for emergencies.
+Recommend doctors for serious cases.
 """),
         HumanMessage(content=user_question)
     ]
