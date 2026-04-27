@@ -1,8 +1,11 @@
-def get_response(user_input):
-    return "AI chatbot is currently under maintenance or not enabled in cloud deployment."
+from langchain_groq import ChatGroq
 from langchain_core.messages import HumanMessage, SystemMessage
 
-llm = ChatOllama(model="llama3", temperature=0.4)
+llm = ChatGroq(
+    api_key="YOUR_GROQ_API_KEY",
+    model="llama3-8b-8192",
+    temperature=0.4
+)
 
 def get_chatbot_response(user_question):
 
@@ -13,10 +16,8 @@ Give only general health advice.
 Do not prescribe medicine.
 Advise doctor for emergencies.
 """),
-
         HumanMessage(content=user_question)
     ]
 
     response = llm.invoke(messages)
-
     return response.content
