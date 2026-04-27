@@ -99,28 +99,25 @@ section[data-testid="stSidebar"] {
 """, unsafe_allow_html=True)
 
 # ---------- LOAD MODELS ----------
+MODEL_DIR = "Models"
+
+# Load Diabetes model + scaler
 Diabetes_model = pickle.load(
-    open("C:/Multiple Disease Prediction System/Models/diabetes_model.pkl", "rb")
+    open(os.path.join(MODEL_DIR, "diabetes_model.pkl"), "rb")
 )
 
 Diabetes_scaler = pickle.load(
-    open("C:/Multiple Disease Prediction System/Models/diabetes_scaler.pkl", "rb")
+    open(os.path.join(MODEL_DIR, "diabetes_scaler.pkl"), "rb")
 )
 
+# Load Heart model + scaler
 Heart_Disease_model = pickle.load(
-    open("C:/Multiple Disease Prediction System/Models/heart_disease_model.pkl", "rb")
+    open(os.path.join(MODEL_DIR, "heart_disease_model.pkl"), "rb")
 )
 
 Heart_scaler = pickle.load(
-    open("C:/Multiple Disease Prediction System/Models/heart_scaler.pkl", "rb")
+    open(os.path.join(MODEL_DIR, "heart_scaler.pkl"), "rb")
 )
-
-# ---------- CHAT HISTORY ----------
-if "chat_history" not in st.session_state:
-    st.session_state.chat_history = [
-        ("bot", "Hello 👋 I'm your AI Health Assistant. How can I help you today?")
-    ]
-
 # ---------- SIDEBAR ----------
 
 
