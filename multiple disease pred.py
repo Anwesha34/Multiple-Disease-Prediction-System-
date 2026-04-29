@@ -260,19 +260,19 @@ if not st.session_state["logged_in"]:
 
 # ---------- LOAD MODELS ----------
 Diabetes_model = pickle.load(
-    open("C:/Multiple Disease Prediction System/Models/diabetes_model.pkl", "rb")
+    open("Models/diabetes_model.pkl", "rb")
 )
 
 Diabetes_scaler = pickle.load(
-    open("C:/Multiple Disease Prediction System/Models/diabetes_scaler.pkl", "rb")
+    open("Models/diabetes_scaler.pkl", "rb")
 )
 
 Heart_Disease_model = pickle.load(
-    open("C:/Multiple Disease Prediction System/Models/heart_disease_model.pkl", "rb")
+    open("Models/heart_disease_model.pkl", "rb")
 )
 
 Heart_scaler = pickle.load(
-    open("C:/Multiple Disease Prediction System/Models/heart_scaler.pkl", "rb")
+    open("Models/heart_scaler.pkl", "rb")
 )
 
 # ---------- CHAT HISTORY ----------
