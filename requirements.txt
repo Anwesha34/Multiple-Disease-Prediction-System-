@@ -7,5 +7,3 @@ streamlit-option-menu
 numpy
 pandas
 scikit-learn
-sqlite3
-hashlib
