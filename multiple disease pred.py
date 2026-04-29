@@ -2,12 +2,46 @@ import pickle
 import streamlit as st
 import suggestions
 import chatbot
+import sqlite3
+import hashlib
 from streamlit_option_menu import option_menu
-import os
 
 
-if "chat_history" not in st.session_state:
-    st.session_state.chat_history = []
+# ---------- DATABASE ----------
+conn = sqlite3.connect("users.db", check_same_thread=False)
+cursor = conn.cursor()
+
+cursor.execute("""
+CREATE TABLE IF NOT EXISTS users (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    username TEXT UNIQUE,
+    password TEXT
+)
+""")
+conn.commit()
+
+def hash_password(password):
+    return hashlib.sha256(password.encode()).hexdigest()
+
+def signup_user(username, password):
+    try:
+        cursor.execute(
+            "INSERT INTO users (username, password) VALUES (?, ?)",
+            (username, hash_password(password))
+        )
+        conn.commit()
+        return True
+    except:
+        return False
+
+def login_user(username, password):
+    cursor.execute(
+        "SELECT * FROM users WHERE username=? AND password=?",
+        (username, hash_password(password))
+    )
+    return cursor.fetchone()
+
+
 
 
 
@@ -101,66 +135,154 @@ section[data-testid="stSidebar"] {
 </style>
 """, unsafe_allow_html=True)
 
-# ---------- LOAD MODELS ----------
-MODEL_DIR = "Models"
 
-# Load Diabetes model + scaler
-Diabetes_model = pickle.load(
-    open(os.path.join(MODEL_DIR, "diabetes_model.pkl"), "rb")
-)
-
-Diabetes_scaler = pickle.load(
-    open(os.path.join(MODEL_DIR, "diabetes_scaler.pkl"), "rb")
-)
-
-# Load Heart model + scaler
-Heart_Disease_model = pickle.load(
-    open(os.path.join(MODEL_DIR, "heart_disease_model.pkl"), "rb")
-)
-
-Heart_scaler = pickle.load(
-    open(os.path.join(MODEL_DIR, "heart_scaler.pkl"), "rb")
-)
-# ---------- SIDEBAR ----------
+# ---------- LOGIN SESSION ----------
 
 
-st.markdown("""
+
+# ---------- SESSION STATE ----------
+if "logged_in" not in st.session_state:
+    st.session_state["logged_in"] = False
+
+if "username" not in st.session_state:
+    st.session_state["username"] = ""
+
+
+# ---------- LOGIN PAGE ----------
+def login_page():
+    st.markdown("""
 <style>
-
-/* Sidebar background */
-section[data-testid="stSidebar"]{
-    background: linear-gradient(180deg,#0b1026,#10193d);
+.stApp {
+    background: linear-gradient(135deg, #e0f2fe, #dbeafe, #eff6ff);
 }
 
-/* Title style */
-.sidebar-title{
-    font-size:28px;
-    font-weight:800;
-    color:#ffffff;
-    letter-spacing:1px;
-    margin-bottom:2px;
+/* Center container */
+.main .block-container {
+    max-width: 540px;
+    margin: auto;
+    padding-top: 70px;
+}
+
+/* Main card */
+.login-card {
+    padding: 40px;
+    border-radius: 24px;
+    background: rgba(255,255,255,0.92);
+    box-shadow: 0 10px 35px rgba(37,99,235,0.12);
+    border: 1px solid #dbeafe;
+}
+
+/* Heading */
+.login-title {
+    text-align: center;
+    font-size: 36px;
+    font-weight: 800;
+    color: #1e3a8a;
+    margin-bottom: 6px;
 }
 
 /* Subtitle */
-.sidebar-subtitle{
-    color:#cbd5e1;
-    font-size:15px;
-    margin-bottom:12px;
+.login-subtitle {
+    text-align: center;
+    font-size: 14px;
+    color: #475569;
+    margin-bottom: 30px;
 }
 
-/* Bottom card */
-.sidebar-bottom{
-    background:#111827;
-    border:1px solid #374151;
-    border-radius:16px;
-    padding:14px;
-    text-align:center;
-    color:#e5e7eb;
-    margin-top:25px;
+/* Input fields */
+.stTextInput input {
+    border-radius: 12px;
+    border: 1px solid #bfdbfe;
+    padding: 10px;
+    background: #f8fafc;
+    color: #111827;
 }
 
+/* Buttons */
+.stButton > button {
+    width: 100%;
+    border-radius: 12px;
+    background: linear-gradient(90deg, #2563eb, #3b82f6);
+    color: white;
+    font-weight: 600;
+    border: none;
+    padding: 12px;
+}
+
+.stButton > button:hover {
+    background: linear-gradient(90deg, #1d4ed8, #2563eb);
+}
 </style>
 """, unsafe_allow_html=True)
+    st.markdown("""
+    <div class="login-title">🩺 MEDI PREDICT</div>
+    <div class="login-subtitle">AI Health Dashboard Login</div>
+    """, unsafe_allow_html=True)
+
+    tab1, tab2 = st.tabs([" Login", " Sign Up"])
+
+    with tab1:
+        username = st.text_input("Username", key="login_user")
+        password = st.text_input("Password", type="password", key="login_pass")
+
+        if st.button("Login"):
+            if username == "" or password == "":
+                st.warning("Please fill all fields")
+            elif login_user(username, password):
+                st.session_state["logged_in"] = True
+                st.session_state["username"] = username
+                st.rerun()
+            else:
+                st.error("Invalid username or password")
+
+    with tab2:
+        new_username = st.text_input("Create Username", key="signup_user")
+        new_password = st.text_input("Create Password", type="password", key="signup_pass")
+        confirm_password = st.text_input("Confirm Password", type="password", key="confirm_pass")
+
+        if st.button("Create Account"):
+            if new_username == "" or new_password == "" or confirm_password == "":
+                st.warning("Please fill all fields")
+            elif new_password != confirm_password:
+                st.error("Passwords do not match")
+            elif signup_user(new_username, new_password):
+                st.success("Account created successfully ✅")
+            else:
+                st.error("Username already exists")
+
+    st.markdown('</div>', unsafe_allow_html=True)
+
+
+# ---------- SHOW LOGIN FIRST ----------
+if not st.session_state["logged_in"]:
+    login_page()
+    st.stop() 
+
+# ---------- LOAD MODELS ----------
+Diabetes_model = pickle.load(
+    open("C:/Multiple Disease Prediction System/Models/diabetes_model.pkl", "rb")
+)
+
+Diabetes_scaler = pickle.load(
+    open("C:/Multiple Disease Prediction System/Models/diabetes_scaler.pkl", "rb")
+)
+
+Heart_Disease_model = pickle.load(
+    open("C:/Multiple Disease Prediction System/Models/heart_disease_model.pkl", "rb")
+)
+
+Heart_scaler = pickle.load(
+    open("C:/Multiple Disease Prediction System/Models/heart_scaler.pkl", "rb")
+)
+
+# ---------- CHAT HISTORY ----------
+if "chat_history" not in st.session_state:
+    st.session_state.chat_history = [
+        ("bot", "Hello 👋 I'm your AI Health Assistant. How can I help you today?")
+    ]
+
+# ---------- SIDEBAR ----------
+
 
 with st.sidebar:
 
@@ -189,8 +311,16 @@ with st.sidebar:
         🌿 Stay Healthy,<br>Stay Happy
     </div>
     """, unsafe_allow_html=True)
-    
-    
+
+    # ---------- USER INFO ----------
+    if "username" in st.session_state and st.session_state.username:
+        st.success(f"Logged in as {st.session_state.username}")
+
+    # ---------- LOGOUT BUTTON ----------
+    if st.button("🚪 Logout", use_container_width=True):
+        st.session_state.logged_in = False
+        st.session_state.username = ""
+        st.rerun()
 
 
 
